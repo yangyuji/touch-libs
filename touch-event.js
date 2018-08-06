@@ -19,7 +19,6 @@
 
     function touch (el) {
         this.page = typeof el == 'string' ? document.querySelector(el) : el;   // 主容器
-
         // 各种事件名称
         this.EVENTS = {
             start: 'touch-start',
@@ -28,8 +27,7 @@
             end: 'touch-end',
             cancel: 'touch-cancel',
             destroy: 'touch-destroy'
-        },
-
+        };
         // 各种交互临界，参考hammer.js
         this.options = {
             swipe: {
@@ -46,7 +44,6 @@
         };
 
         this.moved = false;
-        this.direction = 'n';
         this.startTime = 0;
         this.endTime = 0;
 
@@ -69,7 +66,6 @@
             this.moved		= false;
             this.distX		= 0;
             this.distY		= 0;
-            this.direction  = 0;
 
             this.startTime  = utils._getTime();
             this.endTime    = 0;
@@ -104,16 +100,14 @@
                 direction = 'none'; // 方向
 
             this.endTime = utils._getTime();
-
-            // fire touch-end
             this._execEvent(this.EVENTS.end);
 
             duration = this.endTime - this.startTime;
+            direction = this._getDirection(this.distX, this.distY);
             velocity = {
                 x: Math.abs(this.distX / duration),
                 y: Math.abs(this.distY / duration)
             };
-            direction = this._getDirection(this.distX, this.distY)
 
             // 行为判断
             var action = this._getAction.call(this, duration, velocity, direction);
@@ -127,22 +121,28 @@
             }
         },
         _cancel: function () {
+            this.moved		= false;
+            this.distX		= 0;
+            this.distY		= 0;
+            this.pointX     = 0;
+            this.pointY     = 0;
             this._execEvent(this.EVENTS.cancel);
         },
         _getAction: function (duration, velocity, direction) {
             var action = 'none';
-            // 滑动时间超过300ms, 且距离不超过10
+            // 滑动时间超过250ms, 且距离不超过10
             if ( duration > this.options.tap.time
                 && (Math.abs(this.distX) < this.options.tap.threshold
                 && Math.abs(this.distY) < this.options.tap.threshold) ) {
                 action = 'tap';
             }
             // swipe 判断
-            if ( this.options.swipe.direction.indexOf(direction) > -1
+            else if ( this.options.swipe.direction.indexOf(direction) > -1
                 && Math.abs(this.distX) > this.options.swipe.threshold
                 && velocity.x > this.options.swipe.velocity ) {
                 action = 'swipe';
             }
+            // ...未完待续
             return action;
         },
         _getDirection: function (x, y) {

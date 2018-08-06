@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <link rel="shortcut icon" href="" type="image/x-icon">
+    <meta content="telephone=no,email=no" name="format-detection">
+    <title>demo</title>
+    <style>
+        .page {
+            width: 100%;
+            height: 100vh;
+            line-height: 100vh;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+
+    触摸滑动这里
+
+</div>
+<script src="./touch-event.js"></script>
+<script>
+    var myTouch = new touch('.page');
+    myTouch.on('touch-move', function (distX, distY) {
+        console.log(distX, distY);
+    });
+    myTouch.on('tap', function (e) {
+        console.log('tap', e);
+    });
+    myTouch.on('swipe', function () {
+        console.log('swipe');
+    });
+    myTouch.on('swipe-left', function () {
+        console.log('swipeLeft');
+    });
+    myTouch.on('swipe-right', function () {
+        console.log('swipeRight');
+    });
+</script>
+</body>
+</html>

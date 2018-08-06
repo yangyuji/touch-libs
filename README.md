@@ -20,3 +20,7 @@ var myTouch = new touch('.page');
         console.log('swipeRight');
     });
 ```
+
+## todo
+* touch-es6.js
+* touch-throttle.js

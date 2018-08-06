@@ -63,7 +63,6 @@
             this._unbindEvents();
             this._execEvent(this.EVENTS.destroy);
         },
-
         _start: function (e) {
             var point = e.touches ? e.touches[0] : e;
 
@@ -82,31 +81,19 @@
         _move: function (e) {
             var point		= e.touches ? e.touches[0] : e,
                 deltaX		= point.pageX - this.pointX,
-                deltaY		= point.pageY - this.pointY,
-                absDistX, absDistY;
+                deltaY		= point.pageY - this.pointY;
 
             this.pointX		= point.pageX;
             this.pointY		= point.pageY;
 
             this.distX		+= deltaX;
             this.distY		+= deltaY;
-            absDistX		= Math.abs(this.distX);
-            absDistY		= Math.abs(this.distY);
 
             // 执行了滑动
             if (!this.moved) {
                 this._execEvent(this.EVENTS.started);
             }
             this.moved = true;
-
-            // 方向判断，加上一个Threshold：5
-            if ( absDistX > absDistY + 5 ) {
-                this.direction = 'h';		// horizontally
-            } else if ( absDistY >= absDistX + 5 ) {
-                this.direction = 'v';		// vertically
-            } else {
-                this.direction = 'n';
-            }
 
             this._execEvent(this.EVENTS.move, this.distX, this.distY, e);
         },

@@ -1,23 +1,25 @@
 /**
-* author: "oujizeng",
-* license: "MIT",
-* github: "https://github.com/yangyuji/touch-libs",
-* name: "touch-event.js",
-* version: "1.0.0"
-*/
+ * author: "oujizeng",
+ * license: "MIT",
+ * github: "https://github.com/yangyuji/touch-libs",
+ * name: "touch-event.js",
+ * version: "1.0.1"
+ */
 
 (function (root, factory) {
     if (typeof module != 'undefined' && module.exports) {
         module.exports = factory();
     } else if (typeof define == 'function' && define.amd) {
-        define( function () { return factory(); } );
+        define(function () {
+            return factory();
+        });
     } else {
         root['touch'] = factory();
     }
 }(this, function () {
     'use strict'
 
-    function touch (el) {
+    function touch(el) {
         this.page = typeof el == 'string' ? document.querySelector(el) : el;   // 主容器
         // 各种事件名称
         this.EVENTS = {
@@ -32,13 +34,19 @@
         this.options = {
             swipe: {
                 event: 'swipe',
-                threshold: 10,               // 最小滑动距离
-                velocity: 0.3,               // 最小滑动速度
-                direction: ['left','right']  // 支持方向
+                threshold: 10,                  // 最小滑动距离
+                velocity: 0.3,                  // 最小滑动速度
+                direction: ['left', 'right']    // 支持方向
             },
             tap: {
                 event: 'tap',
-                time: 250,          // 最短按下时间
+                time: 250,           // 最短按下时间
+                maxtime: 300,        // 最长按下时间
+                threshold: 9         // 最大滑动距离
+            },
+            press: {
+                event: 'press',
+                time: 301,          // 最短按下时间
                 threshold: 9        // 最大滑动距离
             }
         };
@@ -55,7 +63,7 @@
     }
 
     touch.prototype = {
-        version: '1.0.0',
+        version: '1.0.1',
         destroy: function () {
             this._unbindEvents();
             this._execEvent(this.EVENTS.destroy);
@@ -63,27 +71,27 @@
         _start: function (e) {
             var point = e.touches ? e.touches[0] : e;
 
-            this.moved		= false;
-            this.distX		= 0;
-            this.distY		= 0;
+            this.moved = false;
+            this.distX = 0;
+            this.distY = 0;
 
-            this.startTime  = utils._getTime();
-            this.endTime    = 0;
-            this.pointX     = point.pageX;
-            this.pointY     = point.pageY;
+            this.startTime = utils._getTime();
+            this.endTime = 0;
+            this.pointX = point.pageX;
+            this.pointY = point.pageY;
 
             this._execEvent(this.EVENTS.start);
         },
         _move: function (e) {
-            var point		= e.touches ? e.touches[0] : e,
-                deltaX		= point.pageX - this.pointX,
-                deltaY		= point.pageY - this.pointY;
+            var point = e.touches ? e.touches[0] : e,
+                deltaX = point.pageX - this.pointX,
+                deltaY = point.pageY - this.pointY;
 
-            this.pointX		= point.pageX;
-            this.pointY		= point.pageY;
+            this.pointX = point.pageX;
+            this.pointY = point.pageY;
 
-            this.distX		+= deltaX;
-            this.distY		+= deltaY;
+            this.distX += deltaX;
+            this.distY += deltaY;
 
             // 执行了滑动
             if (!this.moved) {
@@ -94,7 +102,7 @@
             this._execEvent(this.EVENTS.move, this.distX, this.distY, e);
         },
         _end: function (e) {
-            var point    = e.changedTouches ? e.changedTouches[0] : e,
+            var point = e.changedTouches ? e.changedTouches[0] : e,
                 duration = 0,       // 耗时
                 velocity = null,    // 速度
                 direction = 'none'; // 方向
@@ -115,34 +123,43 @@
                 return;
             } else if (action == 'tap') {
                 this._execEvent(this.options.tap.event, e);
+            } else if (action == 'press') {
+                this._execEvent(this.options.press.event, e);
             } else if (action == 'swipe') {
                 this._execEvent(this.options.swipe.event);
                 this._execEvent(this.options.swipe.event + '-' + direction);
             }
         },
         _cancel: function () {
-            this.moved		= false;
-            this.distX		= 0;
-            this.distY		= 0;
-            this.pointX     = 0;
-            this.pointY     = 0;
+            this.moved = false;
+            this.distX = 0;
+            this.distY = 0;
+            this.pointX = 0;
+            this.pointY = 0;
             this._execEvent(this.EVENTS.cancel);
         },
         _getAction: function (duration, velocity, direction) {
             var action = 'none';
-            // 滑动时间超过250ms, 且距离不超过10
-            if ( duration > this.options.tap.time
-                && (Math.abs(this.distX) < this.options.tap.threshold
-                && Math.abs(this.distY) < this.options.tap.threshold) ) {
+            // tap
+            if (duration > this.options.tap.time
+                && duration < this.options.tap.maxtime
+                && Math.abs(this.distX) < this.options.tap.threshold
+                && Math.abs(this.distY) < this.options.tap.threshold) {
                 action = 'tap';
             }
-            // swipe 判断
-            else if ( this.options.swipe.direction.indexOf(direction) > -1
+            // press
+            else if (duration > this.options.press.time
+                && Math.abs(this.distX) < this.options.press.threshold
+                && Math.abs(this.distY) < this.options.press.threshold) {
+                action = 'press';
+            }
+            // swipe
+            else if (this.options.swipe.direction.indexOf(direction) > -1
                 && Math.abs(this.distX) > this.options.swipe.threshold
-                && velocity.x > this.options.swipe.velocity ) {
+                && velocity.x > this.options.swipe.velocity) {
                 action = 'swipe';
             }
-            // ...未完待续
+            // ...未完待续，需要监听touches[0], touches[1]变化
             return action;
         },
         _getDirection: function (x, y) {
@@ -161,9 +178,9 @@
             this.cancel = this._cancel.bind(this);
 
             this.page.addEventListener('touchstart', this.start,
-                utils._supportPassive() ? { passive: true } : false);
+                utils._supportPassive() ? {passive: true} : false);
             this.page.addEventListener('touchmove', this.move,
-                utils._supportPassive() ? { passive: true } : false);
+                utils._supportPassive() ? {passive: true} : false);
             this.page.addEventListener('touchend', this.end, false);
             this.page.addEventListener('touchcancel', this.cancel, false);
         },
@@ -179,7 +196,7 @@
             }
             var i = 0,
                 l = this._events[type].length;
-            if ( !l ) {
+            if (!l) {
                 return;
             }
             for (; i < l; i++) {
@@ -197,25 +214,28 @@
                 return;
             }
             var index = this._events[type].indexOf(fn);
-            if ( index > -1 ) {
+            if (index > -1) {
                 this._events[type].splice(index, 1);
             }
         }
     }
 
     var utils = {
-        _getTime: Date.now || function getTime () { return new Date().getTime(); },
+        _getTime: Date.now || function getTime() {
+            return new Date().getTime();
+        },
         _supportPassive: function () {
             var support = false;
             try {
                 window.addEventListener("test", null,
                     Object.defineProperty({}, "passive", {
-                        get: function() {
+                        get: function () {
                             support = true;
                         }
                     })
                 );
-            } catch (err) {}
+            } catch (err) {
+            }
             return support
         }
     };

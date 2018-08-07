@@ -7,23 +7,42 @@
     <meta content="telephone=no,email=no" name="format-detection">
     <title>demo</title>
     <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
         .page {
             width: 100%;
-            height: 100vh;
-            line-height: 100vh;
+            height: 50vh;
+            line-height: 50vh;
             text-align: center;
         }
     </style>
 </head>
 <body>
-<div class="page">
-
-    触摸滑动这里
-
+<div class="page" id="event">
+    event 触摸滑动这里
+</div>
+<div class="page" id="es6">
+    es6 触摸滑动这里
 </div>
 <script src="./touch-event.js"></script>
+<script src="./touch-es6.js"></script>
 <script>
-    var myTouch = new touch('.page');
+    // touch-es6
+    const esTouch = new Touch(document.querySelector('#es6'));
+    esTouch.on('start', (e) => {
+        console.log('es start', e);
+    })
+    esTouch.on('move', (e) => {
+        console.log('es move', e);
+    })
+    esTouch.on('end', (e) => {
+        console.log('es end', e);
+    })
+
+    // touch-event
+    var myTouch = new touch('#event');
     myTouch.on('touch-move', function (distX, distY) {
         console.log(distX, distY);
     });

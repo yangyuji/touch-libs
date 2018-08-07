@@ -21,9 +21,9 @@ var myTouch = new touch('.page');
     });
 ```
 
-## 预览
-> * 页面[点击这里](https://yangyuji.github.io/touch-libs/demo.html)
-> * ![扫描二维码](https://github.com/yangyuji/touch-libs/blob/master/qrcode.png)
+## preview
+> * page link [click here](https://yangyuji.github.io/touch-libs/demo.html)
+> * ![qrcode](https://github.com/yangyuji/touch-libs/blob/master/qrcode.png)
 
 ## todo
 * touch-throttle.js

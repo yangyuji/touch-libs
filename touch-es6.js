@@ -46,7 +46,7 @@ class Touch {
             }
         };
 
-        this.el.addEventListener('touchstart', this, false)
+        this.el.addEventListener('touchstart', this, this._supportPassive() ? { passive: true } : false)
     }
 
     // refer to: https://www.thecssninja.com/javascript/handleevent
@@ -73,7 +73,7 @@ class Touch {
             time: Date.now()
         }
         this.endPos = {}
-        this.el.addEventListener('touchmove', this, false)
+        this.el.addEventListener('touchmove', this, this._supportPassive() ? { passive: true } : false)
         this.el.addEventListener('touchend', this, false)
 
         this.emit(this.EVENTS.start, this.startPos, e)
@@ -167,6 +167,20 @@ class Touch {
             return x < 0 ? 'left' : 'right';
         }
         return y < 0 ? 'up' : 'down';
+    }
+    _supportPassive () {
+        var support = false;
+        try {
+            window.addEventListener("test", null,
+                Object.defineProperty({}, "passive", {
+                    get: function () {
+                        support = true;
+                    }
+                })
+            );
+        } catch (err) {
+        }
+        return support
     }
 
     // Event

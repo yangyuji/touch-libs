@@ -3,7 +3,7 @@
  * license: "MIT",
  * github: "https://github.com/yangyuji/touch-libs",
  * name: "touch-event.js",
- * version: "1.0.1"
+ * version: "1.0.2"
  */
 
 (function (root, factory) {
@@ -46,7 +46,7 @@
             },
             press: {
                 event: 'press',
-                time: 301,          // 最短按下时间
+                time: 501,          // 最短按下时间
                 threshold: 9        // 最大滑动距离
             }
         };
@@ -63,10 +63,10 @@
     }
 
     touch.prototype = {
-        version: '1.0.1',
+        version: '1.0.2',
         destroy: function () {
             this._unbindEvents();
-            this._execEvent(this.EVENTS.destroy);
+            this.emit(this.EVENTS.destroy);
         },
         _start: function (e) {
             var point = e.touches ? e.touches[0] : e;
@@ -80,7 +80,7 @@
             this.pointX = point.pageX;
             this.pointY = point.pageY;
 
-            this._execEvent(this.EVENTS.start);
+            this.emit(this.EVENTS.start, e);
         },
         _move: function (e) {
             var point = e.touches ? e.touches[0] : e,
@@ -95,11 +95,11 @@
 
             // 执行了滑动
             if (!this.moved) {
-                this._execEvent(this.EVENTS.started);
+                this.emit(this.EVENTS.started, e);
             }
             this.moved = true;
 
-            this._execEvent(this.EVENTS.move, this.distX, this.distY, e);
+            this.emit(this.EVENTS.move, this.distX, this.distY, e);
         },
         _end: function (e) {
             var point = e.changedTouches ? e.changedTouches[0] : e,
@@ -108,7 +108,7 @@
                 direction = 'none'; // 方向
 
             this.endTime = utils._getTime();
-            this._execEvent(this.EVENTS.end);
+            this.emit(this.EVENTS.end);
 
             duration = this.endTime - this.startTime;
             direction = this._getDirection(this.distX, this.distY);
@@ -122,21 +122,21 @@
             if (action == 'none') {
                 return;
             } else if (action == 'tap') {
-                this._execEvent(this.options.tap.event, e);
+                this.emit(this.options.tap.event, e);
             } else if (action == 'press') {
-                this._execEvent(this.options.press.event, e);
+                this.emit(this.options.press.event, e);
             } else if (action == 'swipe') {
-                this._execEvent(this.options.swipe.event);
-                this._execEvent(this.options.swipe.event + '-' + direction);
+                this.emit(this.options.swipe.event, e);
+                this.emit(this.options.swipe.event + '-' + direction, e);
             }
         },
-        _cancel: function () {
+        _cancel: function (e) {
             this.moved = false;
             this.distX = 0;
             this.distY = 0;
             this.pointX = 0;
             this.pointY = 0;
-            this._execEvent(this.EVENTS.cancel);
+            this.emit(this.EVENTS.cancel, e);
         },
         _getAction: function (duration, velocity, direction) {
             var action = 'none';
@@ -159,7 +159,7 @@
                 && velocity.x > this.options.swipe.velocity) {
                 action = 'swipe';
             }
-            // ...未完待续，需要监听touches[0], touches[1]变化
+            // ...未完待续，双手指操作需要监听touches[0]和touches[1]的变化
             return action;
         },
         _getDirection: function (x, y) {
@@ -190,7 +190,8 @@
             this.page.removeEventListener('touchend', this.end, false);
             this.page.removeEventListener('touchcancel', this.cancel, false);
         },
-        _execEvent: function (type) {
+        // Event
+        emit: function (type) {
             if (!this._events[type]) {
                 return;
             }

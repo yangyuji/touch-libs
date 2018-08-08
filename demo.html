@@ -31,15 +31,25 @@
 <script>
     // touch-es6
     const esTouch = new Touch(document.querySelector('#es6'));
-    esTouch.on('start', (e) => {
-        console.log('es start', e);
-    })
-    esTouch.on('move', (e) => {
+    console.log(esTouch)
+    esTouch.on('touch-move', (e) => {
         console.log('es move', e);
     })
-    esTouch.on('end', (e) => {
-        console.log('es end', e);
+    esTouch.on('tap', (e) => {
+        console.log('es tap', e);
     })
+    esTouch.on('press', function (e) {
+        console.log('press', e);
+    });
+    esTouch.on('swipe', (e) => {
+        console.log('es swipe', e);
+    })
+    esTouch.on('swipe-left', function () {
+        console.log('swipeLeft');
+    });
+    esTouch.on('swipe-right', function () {
+        console.log('swipeRight');
+    });
 
     // touch-event
     var myTouch = new touch('#event');

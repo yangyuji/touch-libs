@@ -3,7 +3,7 @@
  * license: "MIT",
  * github: "https://github.com/yangyuji/touch-libs",
  * name: "touch-es6.js",
- * version: "1.0.1"
+ * version: "1.1.0"
  */
 
 class Touch {
@@ -21,10 +21,11 @@ class Touch {
             start: 'touch-start',
             started: 'touch-started',
             move: 'touch-move',
+            throttle: 'throttle-move',
             end: 'touch-end',
             cancel: 'touch-cancel',
             destroy: 'touch-destroy'
-        };
+        }
         // 各种交互临界，参考hammer.js
         this.options = {
             swipe: {
@@ -44,7 +45,7 @@ class Touch {
                 time: 501,          // 最短按下时间
                 threshold: 9        // 最大滑动距离
             }
-        };
+        }
 
         this.el.addEventListener('touchstart', this, this._supportPassive() ? { passive: true } : false)
     }
@@ -90,11 +91,15 @@ class Touch {
 
         // start move
         if (!this.moved) {
-            this.emit(this.EVENTS.started, e);
+            this.emit(this.EVENTS.started, e)
         }
-        this.moved = true;
+        this.moved = true
 
         this.emit(this.EVENTS.move, this.endPos, e)
+        // throttle
+        requestAnimationFrame(_ => {
+            this.emit(this.EVENTS.throttle, this.endPos)
+        })
     }
 
     touchEnd(e) {
@@ -104,24 +109,24 @@ class Touch {
             y: touch.pageY,
             time: Date.now()
         }
-        this.moved = false;
+        this.moved = false
         this.el.removeEventListener('touchmove', this, false)
         this.el.removeEventListener('touchend', this, false)
         this.emit(this.EVENTS.end, this.endPos, e)
 
         const action = this._getAction()
         if (action == 'none') {
-            return;
+            return
         } else if (action == 'tap') {
-            this.emit(this.options.tap.event, e);
+            this.emit(this.options.tap.event, e)
         } else if (action == 'press') {
-            this.emit(this.options.press.event, e);
+            this.emit(this.options.press.event, e)
         } else if (action == 'swipe') {
-            this.emit(this.options.swipe.event, e);
+            this.emit(this.options.swipe.event, e)
             const distX = this.endPos.x - this.startPos.x,
                 distY = this.endPos.y - this.startPos.y,
-                direction = this._getDirection(distX, distY);
-            this.emit(this.options.swipe.event + '-' + direction, e);
+                direction = this._getDirection(distX, distY)
+            this.emit(this.options.swipe.event + '-' + direction, e)
         }
     }
 
@@ -134,50 +139,50 @@ class Touch {
             velocity = {
                 x: Math.abs(distX / duration),
                 y: Math.abs(distY / duration)
-            };
+            }
 
-        let action = 'none';
+        let action = 'none'
         // tap
         if (duration > this.options.tap.time
             && duration < this.options.tap.maxtime
             && Math.abs(distX) < this.options.tap.threshold
             && Math.abs(distY) < this.options.tap.threshold) {
-            action = 'tap';
+            action = 'tap'
         }
         // press
         else if (duration > this.options.press.time
             && Math.abs(distX) < this.options.press.threshold
             && Math.abs(distY) < this.options.press.threshold) {
-            action = 'press';
+            action = 'press'
         }
         // swipe
         else if (this.options.swipe.direction.indexOf(direction) > -1
             && Math.abs(distX) > this.options.swipe.threshold
             && velocity.x > this.options.swipe.velocity) {
-            action = 'swipe';
+            action = 'swipe'
         }
         // ...未完待续，双手指操作需要监听touches[0]和touches[1]的变化
-        return action;
+        return action
     }
     _getDirection (x, y) {
         if (x === y) {
-            return 'none';
+            return 'none'
         }
         if (Math.abs(x) >= Math.abs(y)) {
-            return x < 0 ? 'left' : 'right';
+            return x < 0 ? 'left' : 'right'
         }
-        return y < 0 ? 'up' : 'down';
+        return y < 0 ? 'up' : 'down'
     }
     _supportPassive () {
-        var support = false;
+        var support = false
         try {
             window.addEventListener("test", null,
                 Object.defineProperty({}, "passive", {
                     get: function () {
-                        support = true;
+                        support = true
                     }
                 })
-            );
+            )
         } catch (err) {
         }
         return support

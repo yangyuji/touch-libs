@@ -3,7 +3,7 @@
  * license: "MIT",
  * github: "https://github.com/yangyuji/touch-libs",
  * name: "touch-event.js",
- * version: "1.0.2"
+ * version: "1.1.0"
  */
 
 (function (root, factory) {
@@ -26,6 +26,7 @@
             start: 'touch-start',
             started: 'touch-started',
             move: 'touch-move',
+            throttle: 'throttle-move',
             end: 'touch-end',
             cancel: 'touch-cancel',
             destroy: 'touch-destroy'
@@ -40,7 +41,7 @@
             },
             tap: {
                 event: 'tap',
-                time: 250,           // 最短按下时间
+                time: 200,           // 最短按下时间
                 maxtime: 300,        // 最长按下时间
                 threshold: 9         // 最大滑动距离
             },
@@ -63,7 +64,7 @@
     }
 
     touch.prototype = {
-        version: '1.0.2',
+        version: '1.1.0',
         destroy: function () {
             this._unbindEvents();
             this.emit(this.EVENTS.destroy);
@@ -100,6 +101,10 @@
             this.moved = true;
 
             this.emit(this.EVENTS.move, this.distX, this.distY, e);
+            // throttle
+            requestAnimationFrame((function () {
+                this.emit(this.EVENTS.throttle, this.distX, this.distY, e);
+            }).bind(this));
         },
         _end: function (e) {
             var point = e.changedTouches ? e.changedTouches[0] : e,

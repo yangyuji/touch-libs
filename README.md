@@ -4,8 +4,14 @@ some light &amp; tiny touch scripts with no dependancy
 ## use like this:
 ```javascript
 var myTouch = new touch('.page');
+    myTouch.on('start', function (e) {
+        console.log('start', e);
+    });
     myTouch.on('touch-move', function (distX, distY) {
         console.log(distX, distY);
+    });
+    myTouch.on('throttle-move', function (e) {
+        console.log('throttle-move', e);
     });
     myTouch.on('tap', function (e) {
         console.log('tap', e);
@@ -24,6 +30,3 @@ var myTouch = new touch('.page');
 ## preview
 > * page link [click here](https://yangyuji.github.io/touch-libs/demo.html)
 > * ![qrcode](https://github.com/yangyuji/touch-libs/blob/master/qrcode.png)
-
-## todo
-* touch-throttle.js

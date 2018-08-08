@@ -20,10 +20,10 @@
     </style>
 </head>
 <body>
-<div class="page" id="event">
+<div class="page" id="event" style="background-color: greenyellow">
     event 触摸滑动这里
 </div>
-<div class="page" id="es6">
+<div class="page" id="es6" style="background-color: snow">
     es6 触摸滑动这里
 </div>
 <script src="./touch-event.js"></script>
@@ -32,29 +32,29 @@
     // touch-es6
     const esTouch = new Touch(document.querySelector('#es6'));
     console.log(esTouch)
-    esTouch.on('touch-move', (e) => {
-        console.log('es move', e);
+    esTouch.on('throttle-move', (e) => {
+        console.log('throttle move', e);
     })
     esTouch.on('tap', (e) => {
         console.log('es tap', e);
     })
-    esTouch.on('press', function (e) {
+    esTouch.on('press', (e) => {
         console.log('press', e);
     });
     esTouch.on('swipe', (e) => {
         console.log('es swipe', e);
     })
-    esTouch.on('swipe-left', function () {
+    esTouch.on('swipe-left', () => {
         console.log('swipeLeft');
     });
-    esTouch.on('swipe-right', function () {
+    esTouch.on('swipe-right', () => {
         console.log('swipeRight');
     });
 
     // touch-event
     var myTouch = new touch('#event');
-    myTouch.on('touch-move', function (distX, distY) {
-        console.log(distX, distY);
+    myTouch.on('throttle-move', (e) => {
+        console.log('throttle move', e);
     });
     myTouch.on('tap', function (e) {
         console.log('tap', e);

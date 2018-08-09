@@ -98,7 +98,7 @@ class Touch {
         this.emit(this.EVENTS.move, this.endPos, e)
         // throttle
         requestAnimationFrame(_ => {
-            this.emit(this.EVENTS.throttle, this.endPos)
+            this.emit(this.EVENTS.throttle, this.endPos, e)
         })
     }
 
@@ -131,7 +131,7 @@ class Touch {
     }
 
     // action analyze
-    _getAction () {
+    _getAction() {
         const distX = this.endPos.x - this.startPos.x,
             distY = this.endPos.y - this.startPos.y,
             direction = this._getDirection(distX, distY),
@@ -164,7 +164,8 @@ class Touch {
         // ...未完待续，双手指操作需要监听touches[0]和touches[1]的变化
         return action
     }
-    _getDirection (x, y) {
+
+    _getDirection(x, y) {
         if (x === y) {
             return 'none'
         }
@@ -173,19 +174,18 @@ class Touch {
         }
         return y < 0 ? 'up' : 'down'
     }
-    _supportPassive () {
-        var support = false
+
+    _supportPassive() {
+        let _support = false
         try {
-            window.addEventListener("test", null,
-                Object.defineProperty({}, "passive", {
-                    get: function () {
-                        support = true
-                    }
-                })
-            )
+            window.addEventListener('test', null, {
+                get passive() {
+                    _support = true
+                }
+            })
         } catch (err) {
         }
-        return support
+        return _support
     }
 
     // Event
@@ -194,17 +194,20 @@ class Touch {
         callbacks.push(callback)
         this._events[event] = callbacks
     }
+
     off(event, callback) {
         let callbacks = this._events[event] || []
         this._events[event] = callbacks.filter(fn => fn !== callback)
         this._events[event].length === 0 && delete this._events[event]
     }
+
     emit(...args) {
         const event = args[0]
         const params = [].slice.call(args, 1)
         const callbacks = this._events[event] || []
         callbacks.forEach(fn => fn.apply(this, params))
     }
+
     once(event, callback) {
         let wrapFunc = (...args) => {
             callback.apply(this, args)

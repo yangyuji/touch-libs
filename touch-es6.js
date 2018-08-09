@@ -7,8 +7,8 @@
  */
 
 class Touch {
-    constructor(element) {
-        this.el = element
+    constructor(el) {
+        this.el = typeof el == 'string' ? document.querySelector(el) : el
         this.moved = false
         // start position
         this.startPos = {}

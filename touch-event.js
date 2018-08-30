@@ -3,7 +3,7 @@
  * license: "MIT",
  * github: "https://github.com/yangyuji/touch-libs",
  * name: "touch-event.js",
- * version: "1.1.0"
+ * version: "1.1.1"
  */
 
 (function (root, factory) {
@@ -56,17 +56,23 @@
         this.startTime = 0;
         this.endTime = 0;
 
+        this.start = this._start.bind(this);
+        this.move = this._move.bind(this);
+        this.end = this._end.bind(this);
+        this.cancel = this._cancel.bind(this);
+
         // 采用事件驱动，不使用回调
         this._events = {};
 
         // 绑定touch事件
-        this._bindEvents();
+        this.page.addEventListener('touchstart', this.start,
+            utils._supportPassive() ? { passive: true } : false);
     }
 
     touch.prototype = {
-        version: '1.1.0',
+        version: '1.1.1',
         destroy: function () {
-            this._unbindEvents();
+            this.page.removeEventListener('touchstart', this.start, false);
             this.emit(this.EVENTS.destroy);
         },
         _start: function (e) {
@@ -80,6 +86,11 @@
             this.endTime = 0;
             this.pointX = point.pageX;
             this.pointY = point.pageY;
+
+            this.page.addEventListener('touchmove', this.move,
+                utils._supportPassive() ? { passive: true } : false);
+            this.page.addEventListener('touchend', this.end, false);
+            this.page.addEventListener('touchcancel', this.cancel, false);
 
             this.emit(this.EVENTS.start, e);
         },
@@ -102,15 +113,21 @@
 
             this.emit(this.EVENTS.move, this.distX, this.distY, e);
             // throttle
-            requestAnimationFrame((function () {
-                this.emit(this.EVENTS.throttle, this.distX, this.distY, e);
-            }).bind(this));
+            var _this = this;
+            requestAnimationFrame(function () {
+                _this.emit(_this.EVENTS.throttle, _this.distX, _this.distY, e);
+            });
         },
         _end: function (e) {
             var point = e.changedTouches ? e.changedTouches[0] : e,
                 duration = 0,       // 耗时
                 velocity = null,    // 速度
                 direction = 'none'; // 方向
+
+            this.moved = false;
+            this.page.removeEventListener('touchmove', this.move, false);
+            this.page.removeEventListener('touchend', this.end, false);
+            this.page.removeEventListener('touchcancel', this.cancel, false);
 
             this.endTime = utils._getTime();
             this.emit(this.EVENTS.end);
@@ -137,6 +154,9 @@
         },
         _cancel: function (e) {
             this.moved = false;
+            this.page.removeEventListener('touchmove', this.move, false);
+            this.page.removeEventListener('touchend', this.end, false);
+            this.page.removeEventListener('touchcancel', this.cancel, false);
             this.distX = 0;
             this.distY = 0;
             this.pointX = 0;
@@ -175,25 +195,6 @@
                 return x < 0 ? 'left' : 'right';
             }
             return y < 0 ? 'up' : 'down';
-        },
-        _bindEvents: function () {
-            this.start = this._start.bind(this);
-            this.move = this._move.bind(this);
-            this.end = this._end.bind(this);
-            this.cancel = this._cancel.bind(this);
-
-            this.page.addEventListener('touchstart', this.start,
-                utils._supportPassive() ? {passive: true} : false);
-            this.page.addEventListener('touchmove', this.move,
-                utils._supportPassive() ? {passive: true} : false);
-            this.page.addEventListener('touchend', this.end, false);
-            this.page.addEventListener('touchcancel', this.cancel, false);
-        },
-        _unbindEvents: function () {
-            this.page.removeEventListener('touchstart', this.start, false);
-            this.page.removeEventListener('touchmove', this.move, false);
-            this.page.removeEventListener('touchend', this.end, false);
-            this.page.removeEventListener('touchcancel', this.cancel, false);
         },
         // Event
         emit: function (type) {

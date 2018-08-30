@@ -3,11 +3,12 @@
  * license: "MIT",
  * github: "https://github.com/yangyuji/touch-libs",
  * name: "touch-es6.js",
- * version: "1.1.0"
+ * version: "1.1.1"
  */
 
 class Touch {
     constructor(el) {
+        this.version = '1.1.1'
         this.el = typeof el == 'string' ? document.querySelector(el) : el
         this.moved = false
         // start position
@@ -60,6 +61,8 @@ class Touch {
                 this.touchMove(e)
                 break
             case 'touchcancel':
+                this.touchCancel(e)
+                break
             case 'touchend':
                 this.touchEnd(e)
                 break
@@ -76,6 +79,7 @@ class Touch {
         this.endPos = {}
         this.el.addEventListener('touchmove', this, this._supportPassive() ? { passive: true } : false)
         this.el.addEventListener('touchend', this, false)
+        this.el.addEventListener('touchcancel', this, false)
 
         this.emit(this.EVENTS.start, this.startPos, e)
     }
@@ -112,6 +116,7 @@ class Touch {
         this.moved = false
         this.el.removeEventListener('touchmove', this, false)
         this.el.removeEventListener('touchend', this, false)
+        this.el.removeEventListener('touchcancel', this, false)
         this.emit(this.EVENTS.end, this.endPos, e)
 
         const action = this._getAction()
@@ -128,6 +133,16 @@ class Touch {
                 direction = this._getDirection(distX, distY)
             this.emit(this.options.swipe.event + '-' + direction, e)
         }
+    }
+
+    touchCancel(e) {
+        this.moved = false
+        this.el.removeEventListener('touchmove', this, false)
+        this.el.removeEventListener('touchend', this, false)
+        this.el.removeEventListener('touchcancel', this, false)
+        this.startPos = {}
+        this.endPos = {}
+        this.emit(this.EVENTS.cancel, e);
     }
 
     // action analyze
@@ -194,20 +209,17 @@ class Touch {
         callbacks.push(callback)
         this._events[event] = callbacks
     }
-
     off(event, callback) {
         let callbacks = this._events[event] || []
         this._events[event] = callbacks.filter(fn => fn !== callback)
         this._events[event].length === 0 && delete this._events[event]
     }
-
     emit(...args) {
         const event = args[0]
         const params = [].slice.call(args, 1)
         const callbacks = this._events[event] || []
         callbacks.forEach(fn => fn.apply(this, params))
     }
-
     once(event, callback) {
         let wrapFunc = (...args) => {
             callback.apply(this, args)

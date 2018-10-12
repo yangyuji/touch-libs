@@ -247,6 +247,5 @@
         }
     };
 
-    touch.utils = utils;
     return touch;
 }));
